@@ -3,6 +3,8 @@ var res = {
     conejo_png : "res/conejo.png",
     fondo_png : "res/fondo.png",
     zanahoria_png : "res/zanahoria.png",
+    x_png : "res/x.png",
+    heart_png : "res/heart.png",
 };
 
 var g_resources = [];
