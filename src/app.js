@@ -2,12 +2,11 @@ var HelloWorldLayer = cc.Layer.extend({
     sprFondo: null,
     sprConejo: null,
     sprVidas: null,
-    sprX: null,
     bombs: [],
     carrots: [],
-    lifes: [0,0,0,0,0],
-    lifesCount:5,
+    lifes: [],
     carrotsTaken: 0,
+    carrotsLabel: null,
     
     ctor:function () {
         this._super();
@@ -31,6 +30,31 @@ var HelloWorldLayer = cc.Layer.extend({
 			onKeyPressed:  this.moveBunny
 		}, this);
         
+        //Lifes
+        var count = 20;
+        for(var i=0; i< 5; i++){
+            var size = cc.winSize;
+            var life= new cc.Sprite(res.heart_png);
+            life.setPosition(size.width/4 + count, size.height - 30);
+            life.setScale(0.1,0.1);
+            this.lifes.push(life);
+            this.addChild(life, 3);
+            count+=28;
+        }
+        
+        //Carrots Counter
+        this.carrotsLabel = new cc.LabelTTF("0", "Arial", 38);
+        this.carrotsLabel.setAnchorPoint(1,1);
+        this.carrotsLabel.setPosition((size.width*2)/3 +70, size.height-18);
+        this.addChild(this.carrotsLabel, 5);
+        var sprX = new cc.Sprite(res.x_png);
+        sprX.setPosition((size.width*2)/3 , size.height-40);
+        sprX.setScale(0.15,0.15);
+        this.addChild(sprX, 3);
+        var carrot = new cc.Sprite(res.zanahoria_png);
+        carrot.setScale(0.5,0.5);
+        carrot.setPosition((size.width*2)/3 -30, size.height-30);
+        this.addChild(carrot, 1);
         
         // Schedule de bombas
         this.schedule(this.createBomb, 3);
@@ -38,36 +62,56 @@ var HelloWorldLayer = cc.Layer.extend({
         this.schedule(this.createCarrots, 3);
         // Schedule to check collitions
         this.schedule(this.manageCollitions, 0.1);
-        // Schedule lifes
-        this.schedule(this.createLifes, 1);
         
         return true;
     },
     
+    reset: function(){
+        this.lifes = new Array();
+        this.carrotsTaken = 0;
+        this.carrotsLabel.setString(this.carrotsTaken);
+        //Adding lifes sprites
+        var count = 20;
+        for(var i=0; i< 5; i++){
+            var size = cc.winSize;
+            var life= new cc.Sprite(res.heart_png);
+            life.setPosition(size.width/4 + count, size.height - 20);
+            life.setScale(0.1,0.1);
+            this.lifes.push(life);
+            this.addChild(life, 3);
+            count+=25;
+        }
+    },
+    
     manageCollitions: function(){
         
-		for(var bomb of this.bombs){
-			var box = bomb.getBoundingBox();
-			if(cc.rectContainsPoint(box, this.sprConejo.getPosition())){
+		for(var i=0; i<this.bombs.length; i++){
+            var bomb = this.bombs[i];
+			if(cc.rectContainsPoint(bomb.getBoundingBox(), this.sprConejo.getPosition())){
                 this.removeChild(bomb);
-                //this.lifesCount--; 
-                //alert(this.lifesCount);
+                this.bombs.splice(i, 1);
+                this.removeChild(this.lifes[this.lifes.length-1]);
+                this.lifes.pop();
+                if(this.lifes.length == 0){
+                    alert("Perdiste");
+                    this.reset();
+                }
 			}
-            if(bomb.getPositionY() < 2){
+            if(bomb.getPositionY() < 0.5){
                 this.removeChild(bomb);
-                this.lifesCount--;
-                this.lifes.removeChildAtIndex;
+                
             }
-           // if(carrot.getPositionY == )
 		}
         
-        for(var carrot of this.carrots){
-			var box = carrot.getBoundingBox();
-			if(cc.rectContainsPoint(box, this.sprConejo.getPosition())){
+        for(var i=0; i<this.carrots.length; i++){
+            var carrot = this.carrots[i];
+			if(cc.rectContainsPoint(carrot.getBoundingBox(), this.sprConejo.getPosition())){
                 this.removeChild(carrot);
+                this.carrots.splice(i, 1);
                 this.carrotsTaken++;
+                this.carrotsLabel.setString(this.carrotsTaken);
 			}
-            if(carrot.getPositionY() < 2){
+            if(carrot.getPositionY() < 0.5){
                 this.removeChild(carrot);
             }
 		}
@@ -102,7 +146,6 @@ var HelloWorldLayer = cc.Layer.extend({
         var bomb = new cc.Sprite(res.bomba_png);
         bomb.setPosition(this.random(size.width/2 - size.width/4, size.width/2 + size.width/4), size.height );
         this.addChild(bomb, 1);
-        //commenting nonsense
         // Adding the Movement
 		var moveto = cc.moveTo(this.random(1,9), bomb.getPositionX(), 0);
 		bomb.runAction(moveto);
@@ -115,25 +158,12 @@ var HelloWorldLayer = cc.Layer.extend({
         var carrot = new cc.Sprite(res.zanahoria_png);
         carrot.setPosition(this.random(size.width/2 - size.width/4, size.width/2 + size.width/4), size.height );
         this.addChild(carrot, 1);
-        
         // Adding the movement
 		var moveto = cc.moveTo(this.random(1,9), carrot.getPositionX(), 0);
 		carrot.runAction(moveto);
         this.carrots.push(carrot);
     },
     
-    createLifes: function(){
-        //lifes = this.lifes;
-        var count = 20;
-        for(var i=0; i<this.lifesCount; i++){
-            var size = cc.winSize;
-            this.lifes[i] = new cc.Sprite(res.heart_png);
-            this.lifes[i].setPosition(size.width/4 + count, size.height - 20);
-            this.lifes[i].setScale(0.1,0.1)
-            this.addChild(this.lifes[i], 3);
-            count+=25;
-        }
-    }
 });
 
 var HelloWorldScene = cc.Scene.extend({
